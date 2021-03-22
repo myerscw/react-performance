@@ -3,8 +3,8 @@
 
 import * as React from 'react'
 import {useCombobox} from '../use-combobox'
-import {getItems} from '../filter-cities'
-import {useForceRerender} from '../utils'
+import {getItems} from '../workerized-filter-cities'
+import {useAsync, useForceRerender} from '../utils'
 
 function Menu({
   items,
@@ -59,10 +59,13 @@ function ListItem({
 function App() {
   const forceRerender = useForceRerender()
   const [inputValue, setInputValue] = React.useState('')
+  const {data, run} = useAsync({data: []})
 
+  React.useEffect(() => {
+    run(getItems(inputValue))
+  }, [inputValue, run])
   // 🐨 wrap getItems in a call to `React.useMemo`
-  const allItems = getItems(inputValue)
-  const items = allItems.slice(0, 100)
+  const items = data.slice(0, 100)
 
   const {
     selectedItem,
@@ -78,7 +81,7 @@ function App() {
     inputValue,
     onInputValueChange: ({inputValue: newValue}) => setInputValue(newValue),
     onSelectedItemChange: ({selectedItem}) =>
-      alert(
+      console.log(
         selectedItem
           ? `You selected ${selectedItem.name}`
           : 'Selection Cleared',
